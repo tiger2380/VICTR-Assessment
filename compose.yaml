@@ -7,6 +7,7 @@ services:
       - ./docker/entrypoint.sh:/entrypoint.sh
       - .:/var/www/
     entrypoint: /entrypoint.sh
+    working_dir: /var/www
 ###> doctrine/doctrine-bundle ###
   database:
     image: docker.io/mariadb:11.5
