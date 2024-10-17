@@ -1,12 +1,11 @@
 
 services:
   web:
-    image: docker.io/php:8.3-apache
+    build:
+      dockerfile: ./Dockerfile
     volumes:
       - ./docker/apache.conf:/etc/apache2/sites-available/000-default.conf
-      - ./docker/entrypoint.sh:/entrypoint.sh
       - .:/var/www/
-    entrypoint: /entrypoint.sh
     working_dir: /var/www
 ###> doctrine/doctrine-bundle ###
   database:
