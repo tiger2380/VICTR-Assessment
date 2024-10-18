@@ -1,4 +1,4 @@
-# VICTR Flagship Symfony Application Template
+# VUMC VICTR Flagship Symfony Application Template
 
 ## Prerequisites
 
@@ -12,10 +12,10 @@
 By default, the web server will be accessible on port 8080 and the database server will be accessible on port 8306. If these ports are already in use on your machine, you can override the ports:
 
 ```sh
-cp composer.override.yaml.dist composer.override.yaml
+cp compose.override.yaml.dist compose.override.yaml
 ```
 
-Edit `composer.override.yaml` to specify the port you would like to use. For example, if you want to change the web server port from 8080 to 9000, the `web` block should look like:
+Edit `compose.override.yaml` to specify the port you would like to use. For example, if you want to change the web server port from 8080 to 9000, the `web` block should look like:
 
 ```yaml
 services:
