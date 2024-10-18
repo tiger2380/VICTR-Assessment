@@ -3,6 +3,8 @@ services:
   web:
     build:
       dockerfile: ./Dockerfile
+    ports:
+      - "8080:80"
     volumes:
       - ./docker/apache.conf:/etc/apache2/sites-available/000-default.conf
       - .:/var/www/
@@ -14,6 +16,8 @@ services:
       MYSQL_ROOT_PASSWORD: ''
       MYSQL_ALLOW_EMPTY_PASSWORD: yes
       MYSQL_DATABASE: app
+    ports:
+      - "8306:3306"
     volumes:
       - database_data:/var/lib/mysql:rw
 ###< doctrine/doctrine-bundle ###
