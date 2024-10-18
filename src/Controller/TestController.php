@@ -14,9 +14,8 @@ class TestController extends AbstractController
     #[Route('/', name: 'test_index')]
     public function index(EntityManagerInterface $em): Response
     {
-        $tests = $em->getRepository(Test::class)->findAll();
         return $this->render('tests.html.twig', [
-            'tests' => $tests
+            'tests' => $em->getRepository(Test::class)->findAll()
         ]);
     }
 

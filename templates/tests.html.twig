@@ -11,9 +11,7 @@
     </div>
     <ol>
     {% for test in tests %}
-        <li>
-            {{ test.name }}{% if test.description %}: {{ test.description }}{% endif %}
-        </li>
+        <li>{{ test.nameAndDescription }}</li>
     {% endfor %}
     </ol>
 {% endblock %}

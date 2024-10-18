@@ -62,6 +62,12 @@ In addition to running composer install, you can run any other command by using 
 docker compose exec web bin/console clear:cache
 ```
 
+To run PHPUnit:
+
+```sh
+docker compose exec web vendor/bin/phpunit
+```
+
 If you want to open a shell to the web container, run:
 
 ```sh

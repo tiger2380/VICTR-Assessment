@@ -48,4 +48,18 @@ class Test
 
         return $this;
     }
+
+    public function getNameAndDescription(): string
+    {
+        $result = '';
+        if ($this->getName() !== null) {
+            $result .= $this->getName();
+            if ($this->getDescription() !== null) {
+                $result .= ' - ' . $this->getDescription();
+            }
+        } elseif ($this->getDescription() !== null) {
+            $result = $this->getDescription();
+        }
+        return $result;
+    }
 }
