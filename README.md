@@ -78,7 +78,7 @@ docker compose exec web bash
 
 This project uses the MariaDB Docker image for the database, which should already be configured properly in the Symfony application in the `.env` file.
 
-The official MariaDB container does not include the `mysql` command line client. If you want to connect to the database from your host machine, you will need a MySQL client installed locally.
+The official MariaDB container does not include the `mysql` command line client. If you want to connect to the database from your host machine, you will need a MySQL client installed locally. The root user account is configured to work without a password. 
 
 Host: `127.0.0.1`  
 Port: `8306` (or the port you specified in `composer.override.yaml`)  
