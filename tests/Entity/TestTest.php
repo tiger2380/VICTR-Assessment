@@ -3,13 +3,12 @@
 namespace App\Tests\Entity;
 
 use App\Entity\Test;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class TestTest extends TestCase
 {
-    /**
-     * @dataProvider nameAndDescriptionProvider
-     */
+    #[DataProvider('nameAndDescriptionProvider')]
     public function testGetNameAndDescription(?string $name, ?string $description, string $expectedValue): void
     {
         $test = new Test();

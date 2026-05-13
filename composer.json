@@ -89,12 +89,11 @@
         }
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5",
+        "phpunit/phpunit": "^12.0",
         "symfony/browser-kit": "*",
         "symfony/css-selector": "*",
         "symfony/debug-bundle": "*",
         "symfony/maker-bundle": "^1.0",
-        "symfony/phpunit-bridge": "^7.4",
         "symfony/stopwatch": "*",
         "symfony/web-profiler-bundle": "*"
     }
