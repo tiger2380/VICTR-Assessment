@@ -24,3 +24,4 @@
 ###< symfony/asset-mapper ###
 
 /compose.override.yaml
+/config/reference.php
