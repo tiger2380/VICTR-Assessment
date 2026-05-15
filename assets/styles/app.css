@@ -1,3 +1,304 @@
 body {
     background-color: #e9ecef;
 }
+
+  .repo-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      border-radius: 1rem;
+      padding: 2.5rem 2rem;
+      margin-bottom: 2rem;
+      color: white;
+  }
+
+  .repo-hero h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.4rem;
+  }
+
+  .repo-hero p {
+      opacity: 0.7;
+      margin-bottom: 0;
+  }
+
+  .btn-refresh {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      transition: all 0.2s;
+      white-space: nowrap;
+  }
+
+  .btn-refresh:hover {
+      background: rgba(255, 255, 255, 0.22);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.55);
+      transform: translateY(-1px);
+  }
+
+  .repo-row {
+      display: flex;
+      align-items: center;
+      padding: 0.9rem 1.25rem;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+      background: #fff;
+      border: 1px solid #e9ecef;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      text-decoration: none;
+      color: inherit;
+  }
+
+  .repo-row:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      border-color: #b6c8ff;
+      color: inherit;
+  }
+
+  .repo-rank {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 50%;
+      background: #f0f4ff;
+      color: #4361ee;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-right: 1rem;
+  }
+
+  .repo-rank.top3 {
+      background: linear-gradient(135deg, #ffd700, #ffb300);
+      color: #5a3e00;
+  }
+
+  .repo-name {
+      font-weight: 600;
+      font-size: 0.975rem;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+
+  .repo-stars {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #fffbec;
+      border: 1px solid #ffe08a;
+      color: #7a5400;
+      border-radius: 2rem;
+      padding: 0.28rem 0.8rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+  }
+
+  .repo-arrow {
+      margin-left: 0.75rem;
+      opacity: 0;
+      transition: opacity 0.18s, transform 0.18s;
+      color: #adb5bd;
+      flex-shrink: 0;
+  }
+
+  .repo-row:hover .repo-arrow {
+      opacity: 1;
+      transform: translateX(3px);
+  }
+
+  .section-meta {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #adb5bd;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+  }
+
+  .section-meta::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e9ecef;
+  }
+
+  .empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: #adb5bd;
+  }
+
+  .empty-state h5 {
+      color: #6c757d;
+  }
+
+  /* ── Modern repo modal ── */
+  .repo-modal-content {
+      border: none;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  }
+
+  .repo-modal-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 1.5rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+  }
+
+  .repo-modal-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      min-width: 0;
+  }
+
+  .repo-modal-gh-icon {
+      color: rgba(255, 255, 255, 0.7);
+      flex-shrink: 0;
+  }
+
+  .repo-modal-header .modal-title {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+
+  .repo-modal-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+  }
+
+  .repo-modal-stars-badge {
+      background: rgba(255, 215, 0, 0.18);
+      border: 1px solid rgba(255, 215, 0, 0.45);
+      color: #ffd700;
+      border-radius: 2rem;
+      padding: 0.25rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+  }
+
+  .repo-modal-close {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.75);
+      border-radius: 50%;
+      width: 2rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      padding: 0;
+  }
+
+  .repo-modal-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+  }
+
+  .repo-modal-body {
+      padding: 1.5rem 1.75rem;
+      background: #fff;
+  }
+
+  .repo-modal-description {
+      font-size: 0.95rem;
+      color: #495057;
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+      min-height: 1.4rem;
+  }
+
+  .repo-modal-description:empty::before {
+      content: 'No description provided.';
+      color: #adb5bd;
+      font-style: italic;
+  }
+
+  .repo-modal-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.1rem;
+  }
+
+  .repo-meta-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 0.6rem;
+      padding: 0.75rem 1rem;
+  }
+
+  .repo-meta-label {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #adb5bd;
+      margin-bottom: 0.3rem;
+  }
+
+  .repo-meta-value {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #212529;
+  }
+
+  .repo-modal-url-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #f0f4ff;
+      border: 1px solid #c7d7ff;
+      border-radius: 0.6rem;
+      padding: 0.65rem 1rem;
+      color: #4361ee;
+  }
+
+  .repo-modal-url-wrap a {
+      color: #4361ee;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+
+  .repo-modal-url-wrap a:hover {
+      text-decoration: underline;
+  }
+
+  @media (max-width: 575px) {
+      .repo-modal-meta-grid {
+          grid-template-columns: 1fr;
+      }
+  }

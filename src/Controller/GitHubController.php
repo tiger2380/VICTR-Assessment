@@ -7,6 +7,7 @@ use App\Repository\GitHubRepositoryRepository;
 use App\Service\GitHubApiService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/github', name: 'github_')]
@@ -28,27 +29,11 @@ class GitHubController extends AbstractController
         ]);
     }
 
-    #[Route('/{githubId}', name: 'show', requirements: ['githubId' => '\d+'])]
-    public function show(int $githubId): Response
-    {
-        $repo = $this->repository->find($githubId);
-
-        if ($repo === null) {
-            throw $this->createNotFoundException('Repository not found.');
-        }
-
-        return $this->render('github/show.html.twig', [
-            'repo' => $repo,
-        ]);
-    }
-
     #[Route('/refresh', name: 'refresh', methods: ['POST'])]
-    public function refresh(): Response
+    public function refresh(): JsonResponse
     {
         $count = $this->apiService->refreshTopPhpRepositories();
 
-        $this->addFlash('success', sprintf('Database refreshed — %d repositories loaded from GitHub.', $count));
-
-        return $this->redirectToRoute('github_index');
+        return new JsonResponse(['message' => 'Database refreshed', 'count' => $count]);
     }
 }
