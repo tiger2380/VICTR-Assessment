@@ -2,8 +2,11 @@
 
 namespace App\Service;
 
+use App\DTO\GitHubRepositoryData;
 use App\Entity\GitHubRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Exception\ValidationFailedException;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class GitHubApiService
@@ -14,6 +17,7 @@ class GitHubApiService
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ValidatorInterface $validator,
         private readonly string $githubToken = '',
     ) {
     }
@@ -28,7 +32,14 @@ class GitHubApiService
         $repos = $this->fetchFromGitHub();
 
         foreach ($repos as $data) {
-            $this->upsert($data);
+            $dto = GitHubRepositoryData::fromArray($data);
+            $violations = $this->validator->validate($dto);
+
+            if (count($violations) > 0) {
+                throw new ValidationFailedException($dto, $violations);
+            }
+
+            $this->upsert($dto);
         }
 
         $this->entityManager->flush();
@@ -67,24 +78,21 @@ class GitHubApiService
         return $body['items'] ?? [];
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
-    private function upsert(array $data): void
+    private function upsert(GitHubRepositoryData $data): void
     {
-        $repo = $this->entityManager->find(GitHubRepository::class, (int) $data['id']);
+        $repo = $this->entityManager->find(GitHubRepository::class, $data->id);
 
         if ($repo === null) {
             $repo = new GitHubRepository();
-            $repo->setGithubId((int) $data['id']);
+            $repo->setGithubId($data->id);
             $this->entityManager->persist($repo);
         }
 
-        $repo->setName((string) $data['full_name']);
-        $repo->setUrl((string) $data['html_url']);
-        $repo->setDescription(isset($data['description']) ? (string) $data['description'] : null);
-        $repo->setStarsCount((int) $data['stargazers_count']);
-        $repo->setCreatedAt(new \DateTimeImmutable((string) $data['created_at']));
-        $repo->setPushedAt(new \DateTimeImmutable((string) $data['pushed_at']));
+        $repo->setName($data->fullName);
+        $repo->setUrl($data->htmlUrl);
+        $repo->setDescription($data->description);
+        $repo->setStarsCount($data->starsCount);
+        $repo->setCreatedAt(new \DateTimeImmutable($data->createdAt));
+        $repo->setPushedAt(new \DateTimeImmutable($data->pushedAt));
     }
 }
