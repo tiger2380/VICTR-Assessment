@@ -34,6 +34,20 @@ class GitHubController extends AbstractController
     {
         $count = $this->apiService->refreshTopPhpRepositories();
 
-        return new JsonResponse(['message' => 'Database refreshed', 'count' => $count]);
+        $repos = $this->repository->findAllOrderedByStars();
+
+        return new JsonResponse([
+            'message' => 'Database refreshed',
+            'count' => $count,
+            'repos' => array_map(static fn (GitHubRepository $r) => [
+                'githubId' => $r->getGithubId(),
+                'name' => $r->getName(),
+                'url' => $r->getUrl(),
+                'description' => $r->getDescription(),
+                'createdAt' => $r->getCreatedAt()->format('Y-m-d'),
+                'pushedAt' => $r->getPushedAt()->format('Y-m-d'),
+                'starsCount' => $r->getStarsCount(),
+            ], $repos),
+        ]);
     }
 }
