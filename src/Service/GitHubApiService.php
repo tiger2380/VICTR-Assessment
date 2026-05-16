@@ -23,13 +23,15 @@ class GitHubApiService
     }
 
     /**
-     * Fetch most-starred public PHP repositories from GitHub and persist them.
+     * Fetch most-starred public PHP repositories from GitHub, clear existing data, and persist the new ones.
      *
-     * @return int Number of repositories upserted
+     * @return int Number of repositories inserted
      */
     public function refreshTopPhpRepositories(): int
     {
         $repos = $this->fetchFromGitHub();
+
+        $this->entityManager->createQuery('DELETE FROM App\Entity\GitHubRepository r')->execute();
 
         foreach ($repos as $data) {
             $dto = GitHubRepositoryData::fromArray($data);
@@ -39,7 +41,7 @@ class GitHubApiService
                 throw new ValidationFailedException($dto, $violations);
             }
 
-            $this->upsert($dto);
+            $this->insert($dto);
         }
 
         $this->entityManager->flush();
@@ -78,21 +80,16 @@ class GitHubApiService
         return $body['items'] ?? [];
     }
 
-    private function upsert(GitHubRepositoryData $data): void
+    private function insert(GitHubRepositoryData $data): void
     {
-        $repo = $this->entityManager->find(GitHubRepository::class, $data->id);
-
-        if ($repo === null) {
-            $repo = new GitHubRepository();
-            $repo->setGithubId($data->id);
-            $this->entityManager->persist($repo);
-        }
-
+        $repo = new GitHubRepository();
+        $repo->setGithubId($data->id);
         $repo->setName($data->fullName);
         $repo->setUrl($data->htmlUrl);
         $repo->setDescription($data->description);
         $repo->setStarsCount($data->starsCount);
         $repo->setCreatedAt(new \DateTimeImmutable($data->createdAt));
         $repo->setPushedAt(new \DateTimeImmutable($data->pushedAt));
+        $this->entityManager->persist($repo);
     }
 }

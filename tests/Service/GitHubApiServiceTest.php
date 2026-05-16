@@ -5,25 +5,38 @@ namespace App\Tests\Service;
 use App\Entity\GitHubRepository;
 use App\Service\GitHubApiService;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class GitHubApiServiceTest extends TestCase
 {
-    private HttpClientInterface&MockObject $httpClient;
+    private HttpClientInterface $httpClient;
     private EntityManagerInterface&MockObject $entityManager;
 
     protected function setUp(): void
     {
-        $this->httpClient = $this->createMock(HttpClientInterface::class);
+        $this->httpClient = $this->createStub(HttpClientInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
     }
 
     private function makeService(string $token = ''): GitHubApiService
     {
-        return new GitHubApiService($this->httpClient, $this->entityManager, $token);
+        $validator = $this->createStub(ValidatorInterface::class);
+        $validator->method('validate')->willReturn(new ConstraintViolationList());
+
+        return new GitHubApiService($this->httpClient, $this->entityManager, $validator, $token);
+    }
+
+    private function mockDeleteQuery(): void
+    {
+        $query = $this->createStub(Query::class);
+        $query->method('execute')->willReturn(null);
+        $this->entityManager->method('createQuery')->willReturn($query);
     }
 
     private function makeRepoData(int $id = 1): array
@@ -41,7 +54,7 @@ class GitHubApiServiceTest extends TestCase
 
     private function mockHttpResponse(array $items): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => $items]);
 
         $this->httpClient->method('request')->willReturn($response);
@@ -51,8 +64,8 @@ class GitHubApiServiceTest extends TestCase
     {
         $items = [$this->makeRepoData(1), $this->makeRepoData(2)];
         $this->mockHttpResponse($items);
+        $this->mockDeleteQuery();
 
-        $this->entityManager->method('find')->willReturn(null);
         $this->entityManager->expects($this->exactly(2))->method('persist');
         $this->entityManager->expects($this->once())->method('flush');
 
@@ -61,11 +74,27 @@ class GitHubApiServiceTest extends TestCase
         $this->assertSame(2, $count);
     }
 
-    public function testRefreshCreatesNewRepositoriesWhenNotFound(): void
+    public function testRefreshDeletesExistingDataBeforeInserting(): void
+    {
+        $this->mockHttpResponse([$this->makeRepoData(1)]);
+
+        $query = $this->createMock(Query::class);
+        $query->expects($this->once())->method('execute');
+        $this->entityManager->expects($this->once())->method('createQuery')
+            ->with('DELETE FROM App\Entity\GitHubRepository r')
+            ->willReturn($query);
+
+        $this->entityManager->method('persist');
+        $this->entityManager->method('flush');
+
+        $this->makeService()->refreshTopPhpRepositories();
+    }
+
+    public function testRefreshCreatesNewRepositories(): void
     {
         $this->mockHttpResponse([$this->makeRepoData(42)]);
+        $this->mockDeleteQuery();
 
-        $this->entityManager->method('find')->with(GitHubRepository::class, 42)->willReturn(null);
         $this->entityManager->expects($this->once())->method('persist')
             ->with($this->callback(function (GitHubRepository $repo) {
                 return $repo->getGithubId() === 42
@@ -79,31 +108,10 @@ class GitHubApiServiceTest extends TestCase
         $this->makeService()->refreshTopPhpRepositories();
     }
 
-    public function testRefreshUpdatesExistingRepositories(): void
-    {
-        $existing = new GitHubRepository();
-        $existing->setGithubId(7);
-        $existing->setName('old/name');
-        $existing->setUrl('https://github.com/old/name');
-        $existing->setStarsCount(10);
-        $existing->setCreatedAt(new \DateTimeImmutable('2019-01-01'));
-        $existing->setPushedAt(new \DateTimeImmutable('2019-01-01'));
-
-        $this->mockHttpResponse([$this->makeRepoData(7)]);
-
-        $this->entityManager->method('find')->with(GitHubRepository::class, 7)->willReturn($existing);
-        $this->entityManager->expects($this->never())->method('persist');
-        $this->entityManager->expects($this->once())->method('flush');
-
-        $this->makeService()->refreshTopPhpRepositories();
-
-        $this->assertSame('user/repo-7', $existing->getName());
-        $this->assertSame(7000, $existing->getStarsCount());
-    }
-
     public function testRefreshHandlesEmptyItemsGracefully(): void
     {
         $this->mockHttpResponse([]);
+        $this->mockDeleteQuery();
 
         $this->entityManager->expects($this->never())->method('persist');
         $this->entityManager->expects($this->once())->method('flush');
@@ -118,20 +126,21 @@ class GitHubApiServiceTest extends TestCase
         $data = $this->makeRepoData(3);
         unset($data['description']);
         $this->mockHttpResponse([$data]);
+        $this->mockDeleteQuery();
 
-        $this->entityManager->method('find')->willReturn(null);
         $this->entityManager->expects($this->once())->method('persist')
             ->with($this->callback(fn(GitHubRepository $repo) => $repo->getDescription() === null));
-        $this->entityManager->method('flush');
+        $this->entityManager->expects($this->once())->method('flush');
 
         $this->makeService()->refreshTopPhpRepositories();
     }
 
     public function testRequestSendsAuthorizationHeaderWhenTokenProvided(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => []]);
 
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->httpClient->expects($this->once())
             ->method('request')
             ->with(
@@ -144,16 +153,18 @@ class GitHubApiServiceTest extends TestCase
             )
             ->willReturn($response);
 
-        $this->entityManager->method('flush');
+        $this->mockDeleteQuery();
+        $this->entityManager->expects($this->once())->method('flush');
 
         $this->makeService('secret-token')->refreshTopPhpRepositories();
     }
 
     public function testRequestOmitsAuthorizationHeaderWhenNoTokenProvided(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => []]);
 
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->httpClient->expects($this->once())
             ->method('request')
             ->with(
@@ -165,16 +176,18 @@ class GitHubApiServiceTest extends TestCase
             )
             ->willReturn($response);
 
-        $this->entityManager->method('flush');
+        $this->mockDeleteQuery();
+        $this->entityManager->expects($this->once())->method('flush');
 
         $this->makeService('')->refreshTopPhpRepositories();
     }
 
     public function testRequestSendsCorrectQueryParameters(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $response->method('toArray')->willReturn(['items' => []]);
 
+        $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->httpClient->expects($this->once())
             ->method('request')
             ->with(
@@ -191,7 +204,8 @@ class GitHubApiServiceTest extends TestCase
             )
             ->willReturn($response);
 
-        $this->entityManager->method('flush');
+        $this->mockDeleteQuery();
+        $this->entityManager->expects($this->once())->method('flush');
 
         $this->makeService()->refreshTopPhpRepositories();
     }
