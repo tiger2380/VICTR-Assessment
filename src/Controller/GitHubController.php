@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\DTO\GitHubRefreshRequest;
 use App\Entity\GitHubRepository;
 use App\Repository\GitHubRepositoryRepository;
 use App\Service\GitHubApiService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/github', name: 'github_')]
@@ -30,8 +32,14 @@ class GitHubController extends AbstractController
     }
 
     #[Route('/refresh', name: 'refresh', methods: ['POST'])]
-    public function refresh(): JsonResponse
+    public function refresh(Request $request): JsonResponse
     {
+        $dto = GitHubRefreshRequest::fromRequest($request);
+
+        if (!$this->isCsrfTokenValid('github_refresh', $dto->csrfToken)) {
+            return new JsonResponse(['error' => 'Invalid CSRF token'], 403);
+        }
+
         $count = $this->apiService->refreshTopPhpRepositories();
 
         $repos = $this->repository->findAllOrderedByStars();

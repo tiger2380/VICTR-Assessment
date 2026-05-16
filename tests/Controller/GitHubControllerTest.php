@@ -7,6 +7,7 @@ use App\Repository\GitHubRepositoryRepository;
 use App\Service\GitHubApiService;
 use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 class GitHubControllerTest extends WebTestCase
 {
@@ -65,10 +66,15 @@ class GitHubControllerTest extends WebTestCase
 
         $this->apiService->method('refreshTopPhpRepositories')->willReturn(1);
         $this->repository->method('findAllOrderedByStars')->willReturn([$repo]);
+
+        $csrfManager = $this->createStub(CsrfTokenManagerInterface::class);
+        $csrfManager->method('isTokenValid')->willReturn(true);
+
+        static::getContainer()->set('security.csrf.token_manager', $csrfManager);
         static::getContainer()->set(GitHubApiService::class, $this->apiService);
         static::getContainer()->set(GitHubRepositoryRepository::class, $this->repository);
 
-        $client->request('POST', '/github/refresh');
+        $client->request('POST', '/github/refresh', ['_token' => 'test-token']);
 
         $this->assertResponseIsSuccessful();
         $this->assertResponseHeaderSame('content-type', 'application/json');
@@ -94,15 +100,31 @@ class GitHubControllerTest extends WebTestCase
         $apiServiceMock = $this->createMock(GitHubApiService::class);
         $apiServiceMock->expects($this->once())->method('refreshTopPhpRepositories')->willReturn(0);
         $this->repository->method('findAllOrderedByStars')->willReturn([]);
+
+        $csrfManager = $this->createStub(CsrfTokenManagerInterface::class);
+        $csrfManager->method('isTokenValid')->willReturn(true);
+
+        static::getContainer()->set('security.csrf.token_manager', $csrfManager);
         static::getContainer()->set(GitHubApiService::class, $apiServiceMock);
         static::getContainer()->set(GitHubRepositoryRepository::class, $this->repository);
 
-        $client->request('POST', '/github/refresh');
+        $client->request('POST', '/github/refresh', ['_token' => 'test-token']);
 
         $this->assertResponseIsSuccessful();
         $data = json_decode($client->getResponse()->getContent(), true);
         $this->assertSame(0, $data['count']);
         $this->assertSame([], $data['repos']);
+    }
+
+    public function testRefreshReturnsForbiddenWithInvalidCsrfToken(): void
+    {
+        $client = static::createClient();
+
+        $client->request('POST', '/github/refresh', ['_token' => 'invalid-token']);
+
+        $this->assertResponseStatusCodeSame(403);
+        $data = json_decode($client->getResponse()->getContent(), true);
+        $this->assertSame('Invalid CSRF token', $data['error']);
     }
 
     public function testRefreshRequiresPostMethod(): void
