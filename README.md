@@ -52,6 +52,23 @@ docker compose exec web bin/console doctrine:migrations:migrate
 
 Go to http://127.0.0.1:8080/test/ to make sure adding and deleting entities is working properly.
 
+### 5. Open the application
+
+| URL | Description |
+|---|---|
+| http://localhost:8080/ | Home page |
+| http://localhost:8080/github | Top starred PHP repositories |
+
+## Using the application
+
+1. Go to **http://localhost:8080/github**
+2. Click **"Refresh from GitHub"** to load the top 30 most-starred public PHP
+   repositories from the GitHub API into the database.
+3. The table shows each project's name and star count.
+4. Click any row to see full details: description, repository URL, created date,
+   and last push date.
+5. Click **"Refresh from GitHub"** at any time to pull the latest data.
+
 ## Additional notes
 
 ### Web container
