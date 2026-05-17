@@ -232,9 +232,30 @@ function renderRepos(repos) {
 const form = document.getElementById('github-refresh-form');
 const btn = form.querySelector('button[type="submit"]');
 const originalBtnHtml = btn.innerHTML;
+const COOLDOWN_SECONDS = 120;
+let cooldownTimer = null;
+
+function startCooldown() {
+    let remaining = COOLDOWN_SECONDS;
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Wait ${remaining}s…`;
+    cooldownTimer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+            clearInterval(cooldownTimer);
+            cooldownTimer = null;
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        } else {
+            btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/><path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/></svg> Wait ${remaining}s…`;
+        }
+    }, 1000);
+}
 
 form.addEventListener('submit', async function (e) {
     e.preventDefault();
+
+    if (cooldownTimer !== null || btn.disabled) return;
 
     btn.disabled = true;
     btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Refreshing…`;
@@ -249,9 +270,9 @@ form.addEventListener('submit', async function (e) {
 
         const data = await response.json();
         renderRepos(data.repos);
+        startCooldown();
     } catch (err) {
         console.error('Refresh failed:', err);
-    } finally {
         btn.disabled = false;
         btn.innerHTML = originalBtnHtml;
     }
